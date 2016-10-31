@@ -89,8 +89,11 @@ function  testConnection(){
 
 }
 
-function requestS3(bucketName, accessKey,secretKey,param,type,dataType,cb_succes, cb_fail){
-    var signedUrl= getSingedUrl(bucketName,accessKey,secretKey,param,type);
+function requestS3(bucketName, accessKey,secretKey,param,type,dataType,cb_succes, cb_fail,key,getUrl){
+    var signedUrl= getSingedUrl(bucketName,accessKey,secretKey,param,type,key);
+    if(typeof getUrl != "undefined" && getUrl){
+        return signedUrl
+    }
     $.ajax(  {
         url: signedUrl,
         dataType: dataType,
@@ -120,14 +123,14 @@ var cb_success= function(data){
                 if(content.Size == 0){
                     rows = rows + '<tr><td><a href="#" data-preprefix="' + content.Key + '">' + content.Key + '</a></td> <td>&uarr;</td><td></td></tr>'
                 }else {
-                    rows = rows + '<tr><td><a href="#" data-content="' + content.Key + '">' + content.Key + '</a></td><td>' + bytesToSize(content.Size) + '</td><td>' + new Date(content.LastModified) + '</td></tr>'
+                    rows = rows + '<tr><td><a href="'+clickDataDownload(content.Key)+'" data-content="' + content.Key + '">' + content.Key + '</a></td><td>' + bytesToSize(content.Size) + '</td><td>' + new Date(content.LastModified) + '</td></tr>'
                 }
             });
         } else {
              if(contents.Size == 0){
                  rows = rows + '<tr><td><a href="#" data-preprefix="' + contents.Key + '">' + contents.Key + '</a></td> <td> &uarr;</td></td></td></tr>'
              }else {
-                 rows = rows + '<tr><td><a href="#" data-content="' + contents.Key + '">' + contents.Key + '</a></td><td>' + bytesToSize(contents.Size) + '</td><td>' + new Date(contents.LastModified) + '</td></tr>'
+                 rows = rows + '<tr><td><a href="'+clickDataDownload(contents.Key)+'" data-content="' + contents.Key + '">' + contents.Key + '</a></td><td>' + bytesToSize(contents.Size) + '</td><td>' + new Date(contents.LastModified) + '</td></tr>'
              }
         }
     }else{
@@ -151,6 +154,7 @@ var cb_success= function(data){
     $("#dataTable").append(rows);
     setEventForPrefix();
     setEventForPrePrefix();
+
 };
 
 function connectionView($evt){
@@ -173,6 +177,23 @@ function connectionView($evt){
     });
 }
 
+function setEventForDownload(){
+    var dataDownloads =document.querySelectorAll('[data-content]');
+    for (var i = 0; i < dataDownloads.length; i++) {
+        dataDownloads[i].addEventListener('click', clickDataDownload);
+    }
+    return this;
+}
+
+function clickDataDownload(key){
+    var cb_success=function(data){
+        console.log("success",data);
+    };
+    var cb_fail= function(){
+        console.log("Fail");
+    };
+    return requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success,cb_fail,key,true);
+}
 function clickDataPrefix(evt){
     var prefixPath="";
     var dataRootPath="";
@@ -191,6 +212,7 @@ function setEventForPrefix(){
     for (var i = 0; i < dataPrefixes.length; i++) {
         dataPrefixes[i].addEventListener('click', clickDataPrefix);
     }
+    return this;
 }
 
 function setEventForPrePrefix(){
@@ -198,7 +220,7 @@ function setEventForPrePrefix(){
     for (var i = 0; i < dataRoot.length; i++) {
         dataRoot[i].addEventListener('click', clickDataPrePrefix);
     }
-
+    return this;
 }
 
 function clickDataPrePrefix(evt){
@@ -220,7 +242,11 @@ function clickDataPrePrefix(evt){
 
 }
 
-
+function changeBucket(){
+    $(".addconnection").removeClass("hide");
+    $(".viewconnection").addClass("hide");
+     showModal();
+}
 
 function bytesToSize(bytes) {
     var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -243,4 +269,5 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('#cancel').addEventListener('click', cancelCreation);
     document.querySelector('#submit').addEventListener('click', saveConnectionDetails);
     document.querySelector('#test').addEventListener('click', testConnection);
+    document.querySelector('#changeBucket').addEventListener('click', changeBucket);
 });
