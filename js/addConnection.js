@@ -103,10 +103,36 @@ function requestS3(bucketName, accessKey,secretKey,param,type,dataType,cb_succes
 function showModal(){
     $('#myModal').modal('show');
 }
+/**
+ * Handles table creation
+ * @param data
+ */
 var cb_success= function(data){
     $("#dataTable").empty();
+    var noPrefix=false;
+    var noContent=false;
     var rows=common_table;
     var xmlTojson= JSON.parse(xml2json(data,""));
+    var contents =xmlTojson.ListBucketResult.Contents;
+    if(typeof contents !="undefined") {
+        if (Array.isArray(contents)) {
+            contents.forEach(function (content) {
+                if(content.Size == 0){
+                    rows = rows + '<tr><td><a href="#" data-preprefix="' + content.Key + '">' + content.Key + '</a></td> <td>&uarr;</td><td></td></tr>'
+                }else {
+                    rows = rows + '<tr><td><a href="#" data-content="' + content.Key + '">' + content.Key + '</a></td><td>' + bytesToSize(content.Size) + '</td><td>' + new Date(content.LastModified) + '</td></tr>'
+                }
+            });
+        } else {
+             if(contents.Size == 0){
+                 rows = rows + '<tr><td><a href="#" data-preprefix="' + contents.Key + '">' + contents.Key + '</a></td> <td> &uarr;</td></td></td></tr>'
+             }else {
+                 rows = rows + '<tr><td><a href="#" data-content="' + contents.Key + '">' + contents.Key + '</a></td><td>' + bytesToSize(contents.Size) + '</td><td>' + new Date(contents.LastModified) + '</td></tr>'
+             }
+        }
+    }else{
+        noContent=true;
+    }
     var prefixes=xmlTojson.ListBucketResult.CommonPrefixes;
     if( typeof  prefixes!="undefined") {
         if (Array.isArray(prefixes)) {
@@ -116,19 +142,15 @@ var cb_success= function(data){
         } else {
             rows = rows + '<tr><td><a href="#" data-prefix="' + prefixes.Prefix + '">' + prefixes.Prefix + '</a></td></td><td></td><td></tr>'
         }
+    }else{
+        noPrefix=true;
     }
-    var contents =xmlTojson.ListBucketResult.Contents;
-    if(typeof contents !="undefined") {
-        if (Array.isArray(contents)) {
-            contents.forEach(function (content) {
-                rows = rows + '<tr><td><a href="#" data-content="' + content.Key + '">' + content.Key + '</a></td><td>' + bytesToSize(content.Size) + '</td><td>' + new Date(content.LastModified) + '</td></tr>'
-            });
-        } else {
-            rows = rows + '<tr><td><a href="#" data-content="' + contents.Key + '">' + contents.Key + '</a></td><td>' + bytesToSize(contents.Size) + '</td><td>' + new Date(contents.LastModified) + '</td></tr>'
-        }
+    if(noPrefix && noContent){
+        rows+='<tr><td>Nothing is Here !</td></tr>'
     }
     $("#dataTable").append(rows);
     setEventForPrefix();
+    setEventForPrePrefix();
 };
 
 function connectionView($evt){
@@ -152,18 +174,11 @@ function connectionView($evt){
 }
 
 function clickDataPrefix(evt){
-    var listRoots= $("#prefix li");
     var prefixPath="";
     var dataRootPath="";
-    for(var i=1; i< listRoots.length ; i++ ){
-        if(i==1){
-            dataRootPath+= '<li class="breadcrumb-item"> <a href="#" data-root="'+$(listRoots[i]).children().attr("data-root")+'">'+ $(listRoots[i]).children().attr("data-root")+'</a></li>'
-        }else {
-            prefixPath = prefixPath + $(listRoots[i]).children().attr("data-root") +'/';
-            dataRootPath+= '<li class="breadcrumb-item"> <a href="#" data-root="'+$(listRoots[i]).children().attr("data-root")+'">'+ $(listRoots[i]).children().attr("data-root")+'</a></li>'
-        }
-    }
     prefixPath+= $(evt.target).attr("data-prefix");
+    dataRootPath+= '<li class="breadcrumb-item">'+ localStorage.getItem("bucketName")+'</li>';
+    dataRootPath+= '<li class="breadcrumb-item">'+ $(evt.target).attr("data-prefix")+'</li>';
     $("#prefix").empty();
     $("#prefix").append(common);
     $("#prefix").append(dataRootPath);
@@ -178,15 +193,30 @@ function setEventForPrefix(){
     }
 }
 
-function setEventForRoot(){
-    var dataRoot =document.querySelectorAll('[data-root]');
+function setEventForPrePrefix(){
+    var dataRoot =document.querySelectorAll('[data-preprefix]');
     for (var i = 0; i < dataRoot.length; i++) {
-        dataRoot[i].addEventListener('click', clickDataRoot);
+        dataRoot[i].addEventListener('click', clickDataPrePrefix);
     }
 
 }
 
-function clickDataRoot(evt){
+function clickDataPrePrefix(evt){
+    var prefixPath="";
+    var dataRootPath="";
+    var actualString=$(evt.target).attr("data-preprefix").substring(0, $(evt.target).attr("data-preprefix").length-1);
+    var prePrefix ="";
+    if(actualString.indexOf("/") >-1){
+        prePrefix=actualString.substring(0,actualString.lastIndexOf("/")+1);
+    }
+    prefixPath+= prePrefix;
+    dataRootPath+= '<li class="breadcrumb-item">'+ localStorage.getItem("bucketName")+'</li>';
+    dataRootPath+= '<li class="breadcrumb-item">'+ prePrefix +'</li>';
+    $("#prefix").empty();
+    $("#prefix").append(common);
+    $("#prefix").append(dataRootPath);
+    var param= {"prefix":prefixPath, "delimiter":'/'};
+    requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success);
 
 }
 
