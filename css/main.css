@@ -1,0 +1,28 @@
+body{
+    min-height: 400px;
+    min-width: 400px;
+}
+.pageheader {
+    margin-top: 10px;
+}
+
+.moveleft {
+    margin-right: 10px;
+}
+
+.moveright {
+    margin-left: 20px;
+}
+.addconnection{
+    margin-top: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.populateConnections {
+    margin-top: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.hide {
+    display: none;
+}
