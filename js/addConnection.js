@@ -1,6 +1,7 @@
 
 var doc= document;
-var common= '<li class="breadcrumb-item"> Amazon S3:</li>'
+var common= '<li class="breadcrumb-item"> Amazon S3:</li>';
+var common_table='<tr><td><b>Name</b></td><td><b>Size</td><td><b>Last Modified</b></td></tr>'
 
 /**
  *  This triggers on click of s3Connection
@@ -121,20 +122,36 @@ function connectionView($evt){
         var param= {"prefix":'', "delimiter":'/'};
         var cb_success= function(data){
             $("#dataTable").empty();
-            var rows="";
-            var prefixes=JSON.parse(xml2json(data,"")).ListBucketResult.CommonPrefixes.Prefix;
+            var rows=common_table;
+            var xmlTojson= JSON.parse(xml2json(data,""));
+            var prefixes=xmlTojson.ListBucketResult.CommonPrefixes;
              if(Array.isArray(prefixes)){
                  prefixes.forEach(function (prefix) {
-                     rows = rows + '<tr><td><a href="#" data-prefix="' + prefix + '">' + prefix + '</a></td></tr>'
+                     rows = rows + '<tr><td><a href="#" data-prefix="' + prefix.Prefix + '">' + prefix.Prefix + '</a></td><td></td><td></td></tr>'
                  });
              }else{
-                 rows = rows + '<tr><td><a href="#" data-prefix="' + prefixes + '">' + prefixes + '</a></td></tr>'
+                 rows = rows + '<tr><td><a href="#" data-prefix="' + prefixes.Prefix + '">' + prefixes.Prefix + '</a></td></td><td></td><td></tr>'
              }
+            var contents =xmlTojson.ListBucketResult.Contents;
+            if(Array.isArray(contents)){
+                contents.forEach(function (content) {
+                    rows = rows + '<tr><td><a href="#" data-content="' + content.Key + '">' + content.Key + '</a></td><td>' + bytesToSize(content.Size) + '</td><td>' + new Date(content.LastModified) + '</td></tr>'
+                });
+            }else{
+                rows= rows + '<tr><td><a href="#" data-content="' + contents.Key + '">' + contents.Key + '</a></td><td>' + bytesToSize(contents.Size) + '</td><td>' + new Date(contents.LastModified) + '</td></tr>'
+            }
             $("#dataTable").append(rows);
-        }
+        };
         requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success);
     });
 }
+
+function bytesToSize(bytes) {
+    var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    if (bytes == 0) return '0 Byte';
+    var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+};
 
 function  deleteConnection(evt){
     chrome.storage.sync.remove($(evt.target).attr("data-delete"), function(Items) {
