@@ -103,6 +103,33 @@ function requestS3(bucketName, accessKey,secretKey,param,type,dataType,cb_succes
 function showModal(){
     $('#myModal').modal('show');
 }
+var cb_success= function(data){
+    $("#dataTable").empty();
+    var rows=common_table;
+    var xmlTojson= JSON.parse(xml2json(data,""));
+    var prefixes=xmlTojson.ListBucketResult.CommonPrefixes;
+    if( typeof  prefixes!="undefined") {
+        if (Array.isArray(prefixes)) {
+            prefixes.forEach(function (prefix) {
+                rows = rows + '<tr><td><a href="#" data-prefix="' + prefix.Prefix + '">' + prefix.Prefix + '</a></td><td></td><td></td></tr>'
+            });
+        } else {
+            rows = rows + '<tr><td><a href="#" data-prefix="' + prefixes.Prefix + '">' + prefixes.Prefix + '</a></td></td><td></td><td></tr>'
+        }
+    }
+    var contents =xmlTojson.ListBucketResult.Contents;
+    if(typeof contents !="undefined") {
+        if (Array.isArray(contents)) {
+            contents.forEach(function (content) {
+                rows = rows + '<tr><td><a href="#" data-content="' + content.Key + '">' + content.Key + '</a></td><td>' + bytesToSize(content.Size) + '</td><td>' + new Date(content.LastModified) + '</td></tr>'
+            });
+        } else {
+            rows = rows + '<tr><td><a href="#" data-content="' + contents.Key + '">' + contents.Key + '</a></td><td>' + bytesToSize(contents.Size) + '</td><td>' + new Date(contents.LastModified) + '</td></tr>'
+        }
+    }
+    $("#dataTable").append(rows);
+    setEventForPrefix();
+};
 
 function connectionView($evt){
     $evt.stopPropagation();
@@ -120,31 +147,50 @@ function connectionView($evt){
         localStorage.setItem("secretToken",obj[self.name1].secretToken);
         localStorage.setItem("bucketName",obj[self.name1].bucketName);
         var param= {"prefix":'', "delimiter":'/'};
-        var cb_success= function(data){
-            $("#dataTable").empty();
-            var rows=common_table;
-            var xmlTojson= JSON.parse(xml2json(data,""));
-            var prefixes=xmlTojson.ListBucketResult.CommonPrefixes;
-             if(Array.isArray(prefixes)){
-                 prefixes.forEach(function (prefix) {
-                     rows = rows + '<tr><td><a href="#" data-prefix="' + prefix.Prefix + '">' + prefix.Prefix + '</a></td><td></td><td></td></tr>'
-                 });
-             }else{
-                 rows = rows + '<tr><td><a href="#" data-prefix="' + prefixes.Prefix + '">' + prefixes.Prefix + '</a></td></td><td></td><td></tr>'
-             }
-            var contents =xmlTojson.ListBucketResult.Contents;
-            if(Array.isArray(contents)){
-                contents.forEach(function (content) {
-                    rows = rows + '<tr><td><a href="#" data-content="' + content.Key + '">' + content.Key + '</a></td><td>' + bytesToSize(content.Size) + '</td><td>' + new Date(content.LastModified) + '</td></tr>'
-                });
-            }else{
-                rows= rows + '<tr><td><a href="#" data-content="' + contents.Key + '">' + contents.Key + '</a></td><td>' + bytesToSize(contents.Size) + '</td><td>' + new Date(contents.LastModified) + '</td></tr>'
-            }
-            $("#dataTable").append(rows);
-        };
         requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success);
     });
 }
+
+function clickDataPrefix(evt){
+    var listRoots= $("#prefix li");
+    var prefixPath="";
+    var dataRootPath="";
+    for(var i=1; i< listRoots.length ; i++ ){
+        if(i==1){
+            dataRootPath+= '<li class="breadcrumb-item"> <a href="#" data-root="'+$(listRoots[i]).children().attr("data-root")+'">'+ $(listRoots[i]).children().attr("data-root")+'</a></li>'
+        }else {
+            prefixPath = prefixPath + $(listRoots[i]).children().attr("data-root") +'/';
+            dataRootPath+= '<li class="breadcrumb-item"> <a href="#" data-root="'+$(listRoots[i]).children().attr("data-root")+'">'+ $(listRoots[i]).children().attr("data-root")+'</a></li>'
+        }
+    }
+    prefixPath+= $(evt.target).attr("data-prefix");
+    $("#prefix").empty();
+    $("#prefix").append(common);
+    $("#prefix").append(dataRootPath);
+    var param= {"prefix":prefixPath, "delimiter":'/'};
+    requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success);
+};
+
+function setEventForPrefix(){
+    var dataPrefixes =document.querySelectorAll('[data-prefix]');
+    for (var i = 0; i < dataPrefixes.length; i++) {
+        dataPrefixes[i].addEventListener('click', clickDataPrefix);
+    }
+}
+
+function setEventForRoot(){
+    var dataRoot =document.querySelectorAll('[data-root]');
+    for (var i = 0; i < dataRoot.length; i++) {
+        dataRoot[i].addEventListener('click', clickDataRoot);
+    }
+
+}
+
+function clickDataRoot(evt){
+
+}
+
+
 
 function bytesToSize(bytes) {
     var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
