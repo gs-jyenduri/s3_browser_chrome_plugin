@@ -119,16 +119,20 @@ function connectionView($evt){
         localStorage.setItem("secretToken",obj[self.name1].secretToken);
         localStorage.setItem("bucketName",obj[self.name1].bucketName);
         var param= {"prefix":'', "delimiter":'/'};
-        requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success);
         var cb_success= function(data){
             $("#dataTable").empty();
             var rows="";
-            var prefixes=xml2json(data,"");
-            prefixes.forEach(function(prefix){
-                rows=rows+'<tr><td><a href="#" data-prefix="'+prefix+'">'+prefix+'</a></td></tr>'
-            });
+            var prefixes=JSON.parse(xml2json(data,"")).ListBucketResult.CommonPrefixes.Prefix;
+             if(Array.isArray(prefixes)){
+                 prefixes.forEach(function (prefix) {
+                     rows = rows + '<tr><td><a href="#" data-prefix="' + prefix + '">' + prefix + '</a></td></tr>'
+                 });
+             }else{
+                 rows = rows + '<tr><td><a href="#" data-prefix="' + prefixes + '">' + prefixes + '</a></td></tr>'
+             }
             $("#dataTable").append(rows);
         }
+        requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success);
     });
 }
 
