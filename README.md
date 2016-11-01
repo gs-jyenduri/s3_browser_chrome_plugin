@@ -3,6 +3,7 @@
 ## Getting Started
    A customised S3 chrome plugin where user can manage multiple s3 connections various actions can be performed by this plugin.
 
+
 ## Features
 ```
 1) Upload a file
@@ -23,10 +24,11 @@ Presentation
     HTML5, Javascript, JQuery , CSS3, Bootstrap
 
 Storage 
-
-chrome storage
+     chrome storage
 ```  
-  
+## Note
+     The authentication information is stored in the gmmail account. If you open your email in other chrome browser and download this plugin and all information will be synced automatically.
+
 ## Versioning
   This is the version 1.0  
 
