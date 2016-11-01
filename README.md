@@ -14,7 +14,7 @@
 
 4) Creation of new folder
 
-5) Browse betweeen the folders
+5) Browse the folders
 ```
 
 ## Languages
