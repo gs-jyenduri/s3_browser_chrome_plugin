@@ -18,8 +18,7 @@
 ```
 
 ## Languages
-```
-Presentation
+  ### Presentation
 
     [HTML5](https://www.w3.org/TR/html5/)
     [Javascript](https://www.javascript.com/)
@@ -27,10 +26,10 @@ Presentation
     [CSS3](https://www.w3.org/Style/CSS/Overview.en.html)
     [Bootstrap](http://getbootstrap.com/)
 
-Storage 
+  ### Storage 
 
-     [chrome storage](https://developer.chrome.com/extensions/storage)
-```  
+    [chrome storage](https://developer.chrome.com/extensions/storage)
+
 ## Note
      The authentication information is stored in the gmail account. If you open your email in other chrome browser and download this plugin and all information will be synced automatically.
 
