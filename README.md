@@ -27,7 +27,7 @@ Storage
      chrome storage
 ```  
 ## Note
-     The authentication information is stored in the gmmail account. If you open your email in other chrome browser and download this plugin and all information will be synced automatically.
+     The authentication information is stored in the gmail account. If you open your email in other chrome browser and download this plugin and all information will be synced automatically.
 
 ## Versioning
   This is the version 1.0  
