@@ -196,7 +196,7 @@ function  setEventForDelete(){
 
 function clickDataDeleteS3(evt){
     var prePrefix ="";
-    var actualString= $(evt.target).attr("data-delete-s3");
+    var actualString= escape($(evt.target).attr("data-delete-s3"));
     if(actualString.indexOf("/") >-1){
         prePrefix=actualString.substring(0,actualString.lastIndexOf("/")+1);
     }
@@ -208,7 +208,7 @@ function clickDataDeleteS3(evt){
     var cb_fail =function(){
         console.log("Download failed")
     };
-    requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"DELETE","xml",cb_success,cb_fail,$(evt.target).attr("data-delete-s3"),false);
+    requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"DELETE","xml",cb_success,cb_fail,escape($(evt.target).attr("data-delete-s3")),false);
 }
 
 function getCurrentPath(){
