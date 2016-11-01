@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="lib/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/main.css">
     <script src="lib/js/jquery.min.js"></script>
+    <script src="lib/js/jquery.tmpl.min.js"></script>
     <script src="lib/js/bootstrap.min.js"></script>
     <script src="lib/js/aws-sdk-2.6.12.min.js"></script>
     <script src="lib/js/xml2json.js"></script>
@@ -13,76 +14,125 @@
 </head>
 <body>
 <div class="pageheader">
-<div class="row">
-    <div class="col-md-4 col-md-offset-5">
-        <h3><b>Amazon S3</b></h3>
+    <div class="row">
+        <div class="col-md-4 col-md-offset-5">
+            <h3><b>Amazon S3</b></h3>
+        </div>
+        <button type="button" style="margin-top:5px;margin-right:5px" class="btn btn-primary" id="changeBucket">Change
+            Bucket
+        </button>
+        <button type="button" style="margin-top:5px;margin-right:5px" class="btn btn-primary" id="uploadFileClick">Upload
+        </button>
     </div>
-    <button type="button" style="margin-top:5px;margin-right:5px" class="btn btn-primary" id="changeBucket">Change Bucket</button>
-    <button type="button" style="margin-top:5px;margin-right:5px" class="btn btn-primary" id="uploadFile">Upload</button>
-</div>
 </div>
 <div class="addconnection">
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">S3 Connection</h4>
-                <button type="button" class="btn btn-primary btn-sm pull-right moveleft" id="showExistingConnections"> Connections</button>
-                <button type="button" class="btn btn-primary btn-sm pull-right moveleft" id="s3Connection">+ S3Connection</button>
-            </div>
-            <div class="modal-body hide populateConnections">
-                <table class="table table-bordered" style="overflow: scroll;" id="connectionTables">
-                </table>
-            </div>
-            <div class="modal-body hide" id="bucketConfiguration">
-                <form>
-                    <div class="form-group">
-                        <label for="connectionName">Connection Name</label>
-                        <input type="text" class="form-control" id="connectionName" required placeholder="Connection Name">
-                    </div>
-                    <div class="form-group">
-                        <label for="bucketName">Bucket Name</label>
-                        <input type="text" class="form-control" required id="bucketName" placeholder="Bucket Name">
-                        <!--<p class="help-block">Example block-level help text here.</p>-->
-                    </div>
-                    <div class="form-group">
-                        <label for="accessKey">Access Key</label>
-                        <input type="text" class="form-control" required id="accessKey" placeholder="Access Key">
-                    </div>
-                    <div class="form-group">
-                        <label for="secretKey">Secret Token</label>
-                        <input type="text" class="form-control" required id="secretKey" placeholder="Secret Token">
-                    </div>
-                    <div class="row hide" id="testresult">
-
-                    </div>
-                </form>
-            </div>
-             <div class="modal-footer">
-                <div  class="hide"  id="bucketFooter">
-                    <button type="submit" class="btn btn-default" id="cancel">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="submit">Submit</button>
-                    <button type="submit" class="btn btn-success" id="test">Test</button>
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">S3 Connection</h4>
+                    <button type="button" class="btn btn-primary btn-sm pull-right moveleft"
+                            id="showExistingConnections"> Connections
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm pull-right moveleft" id="s3Connection">+
+                        S3Connection
+                    </button>
                 </div>
-                 Configure Amazon S3 Configuration
-            </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+                <div class="modal-body hide populateConnections">
+                    <table class="table table-bordered" style="overflow: scroll;" id="connectionTables">
+                    </table>
+                </div>
+                <div class="modal-body hide" id="bucketConfiguration">
+                    <form>
+                        <div class="form-group">
+                            <label for="connectionName">Connection Name</label>
+                            <input type="text" class="form-control" id="connectionName" required
+                                   placeholder="Connection Name">
+                        </div>
+                        <div class="form-group">
+                            <label for="bucketName">Bucket Name</label>
+                            <input type="text" class="form-control" required id="bucketName" placeholder="Bucket Name">
+                            <!--<p class="help-block">Example block-level help text here.</p>-->
+                        </div>
+                        <div class="form-group">
+                            <label for="accessKey">Access Key</label>
+                            <input type="text" class="form-control" required id="accessKey" placeholder="Access Key">
+                        </div>
+                        <div class="form-group">
+                            <label for="secretKey">Secret Token</label>
+                            <input type="text" class="form-control" required id="secretKey" placeholder="Secret Token">
+                        </div>
+                        <div class="row hide" id="testresult">
+
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div class="hide" id="bucketFooter">
+                        <button type="submit" class="btn btn-default" id="cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="submit">Submit</button>
+                        <button type="submit" class="btn btn-success" id="test">Test</button>
+                    </div>
+                    Configure Amazon S3 Configuration
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 </div>
 <div class="viewconnection hide">
     <div class="container">
-      <div class="row" style="min-height: 30px" id="pathS3">
-          <ol class="breadcrumb" id="prefix">
-          </ol>
-      </div>
-      <div class="row">
-          <table class="table table-hover" id="dataTable">
-          </table>
-      </div>
+        <div class="row" style="min-height: 30px" id="pathS3">
+            <ol class="breadcrumb" id="prefix">
+            </ol>
+        </div>
+        <div class="row">
+            <table class="table table-hover" id="dataTable">
+            </table>
+        </div>
 
     </div>
+</div>
+<div class="fileUploadView hide">
+    <div class="modal fade" tabindex="-1" role="dialog" id="fileModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">File Upload</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                     <input type="file" class="btn btn-info" id="uploadFile" />
+                    </form>
+
+                    <p id="fileUploadError" class="text-danger hide"></p>
+
+                    <div class="list-group" id="files"></div>
+
+                                        <script id="fileUploadProgressTemplate" type="text/x-jquery-tmpl">
+                        <div class="list-group-item">
+                            <div class="progress progress-striped active">
+                                <div class="progress-bar progress-bar-info" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </script>
+
+                       <script id="fileUploadItemTemplate" type="text/x-jquery-tmpl">
+                        <div class="list-group-item">
+                            <button type="button" class="close">&times;</button>
+                             Loaded!
+                        </div>
+                    </script>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="fileClose">Close</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 </div>
 </body>
 </html>

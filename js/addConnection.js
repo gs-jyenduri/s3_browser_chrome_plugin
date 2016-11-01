@@ -1,7 +1,7 @@
 
 var doc= document;
 var common= '<li class="breadcrumb-item"> Amazon S3:</li>';
-var common_table='<tr><td><b>Name</b></td><td><b>Size</td><td><b>Last Modified</b></td></tr>'
+var common_table='<tr><td><b>Name</b></td><td><b>Size</td><td><b>Last Modified</b></td> <td><b>Delete</b></td></tr>'
 
 /**
  *  This triggers on click of s3Connection
@@ -79,18 +79,18 @@ function  testConnection(){
     var cb_success= function(data){
         console.log(xml2json(data,""));
         //s.ListBucketResult.Contents
-        $("#testresult").html(" <div class='alert alert-success moveleft moveright'> <strong>Bucket exists</strong></div>")
+        $("#testresult").html(" <div class='alert alert-success moveleft moveright'> <strong>Authentication Successful !</strong></div>")
     };
     var cb_fail=function(data){
-        $("#testresult").html(" <div class='alert alert-success moveleft moveright'> <strong> Failure</strong></div>")
+        $("#testresult").html(" <div class='alert alert-warning moveleft moveright'> <strong> Failure</strong></div>")
     };
     var param= {"prefix":'', "delimiter":'/'};
     requestS3(bucketName,accessKey,secretKey,param,"GET","xml",cb_success,cb_fail)
 
 }
 
-function requestS3(bucketName, accessKey,secretKey,param,type,dataType,cb_succes, cb_fail,key,getUrl){
-    var signedUrl= getSingedUrl(bucketName,accessKey,secretKey,param,type,key);
+function requestS3(bucketName, accessKey,secretKey,param,type,dataType,cb_succes, cb_fail,key,getUrl, content_type){
+    var signedUrl= getSingedUrl(bucketName,accessKey,secretKey,param,type,key,content_type);
     if(typeof getUrl != "undefined" && getUrl){
         return signedUrl
     }
@@ -121,16 +121,16 @@ var cb_success= function(data){
         if (Array.isArray(contents)) {
             contents.forEach(function (content) {
                 if(content.Size == 0){
-                    rows = rows + '<tr><td><a href="#" data-preprefix="' + content.Key + '">' + content.Key + '</a></td> <td>&uarr;</td><td></td></tr>'
+                    rows = rows + '<tr><td><a href="#" data-preprefix="' + content.Key + '">' + content.Key + '</a></td> <td>&uarr;</td><td></td><td></td></tr>'
                 }else {
-                    rows = rows + '<tr><td><a href="'+clickDataDownload(content.Key)+'" data-content="' + content.Key + '">' + content.Key + '</a></td><td>' + bytesToSize(content.Size) + '</td><td>' + new Date(content.LastModified) + '</td></tr>'
+                    rows = rows + '<tr><td><a href="'+clickDataDownload(content.Key)+'" data-content="' + content.Key + '">' + content.Key + '</a></td><td>' + bytesToSize(content.Size) + '</td><td>' + new Date(content.LastModified) + '</td><td><button class="btn btn-danger" data-delete-s3="'+content.Key+'">Delete</button></td></tr>'
                 }
             });
         } else {
              if(contents.Size == 0){
-                 rows = rows + '<tr><td><a href="#" data-preprefix="' + contents.Key + '">' + contents.Key + '</a></td> <td> &uarr;</td></td></td></tr>'
+                 rows = rows + '<tr><td><a href="#" data-preprefix="' + contents.Key + '">' + contents.Key + '</a></td> <td> &uarr;</td><td></td><td></td></tr>'
              }else {
-                 rows = rows + '<tr><td><a href="'+clickDataDownload(contents.Key)+'" data-content="' + contents.Key + '">' + contents.Key + '</a></td><td>' + bytesToSize(contents.Size) + '</td><td>' + new Date(contents.LastModified) + '</td></tr>'
+                 rows = rows + '<tr><td><a href="'+clickDataDownload(contents.Key)+'" data-content="' + contents.Key + '">' + contents.Key + '</a></td><td>' + bytesToSize(contents.Size) + '</td><td>' + new Date(contents.LastModified) + '</td><td><button class="btn btn-danger" data-delete-s3="'+contents.Key+'">Delete</button></td></tr>'
              }
         }
     }else{
@@ -140,10 +140,10 @@ var cb_success= function(data){
     if( typeof  prefixes!="undefined") {
         if (Array.isArray(prefixes)) {
             prefixes.forEach(function (prefix) {
-                rows = rows + '<tr><td><a href="#" data-prefix="' + prefix.Prefix + '">' + prefix.Prefix + '</a></td><td></td><td></td></tr>'
+                rows = rows + '<tr><td><a href="#" data-prefix="' + prefix.Prefix + '">' + prefix.Prefix + '</a></td><td></td><td></td><td></td></tr>'
             });
         } else {
-            rows = rows + '<tr><td><a href="#" data-prefix="' + prefixes.Prefix + '">' + prefixes.Prefix + '</a></td></td><td></td><td></tr>'
+            rows = rows + '<tr><td><a href="#" data-prefix="' + prefixes.Prefix + '">' + prefixes.Prefix + '</a></td></td><td></td><td><td></td></tr>'
         }
     }else{
         noPrefix=true;
@@ -154,6 +154,7 @@ var cb_success= function(data){
     $("#dataTable").append(rows);
     setEventForPrefix();
     setEventForPrePrefix();
+    setEventForDelete();
 
 };
 
@@ -168,7 +169,7 @@ function connectionView($evt){
     $("#prefix").empty();
     $("#prefix").append(common);
     chrome.storage.sync.get(s3BucketName, function (obj) {
-        $("#prefix").append('<li class="breadcrumb-item"> <a href="#" data-root="'+obj[self.name1].bucketName+'">'+ obj[self.name1].bucketName+'</a></li>');
+        $("#prefix").append('<li class="breadcrumb-item">'+ obj[self.name1].bucketName+'</li>');
         localStorage.setItem("accessKey",obj[self.name1].accessKey);
         localStorage.setItem("secretToken",obj[self.name1].secretToken);
         localStorage.setItem("bucketName",obj[self.name1].bucketName);
@@ -185,6 +186,39 @@ function setEventForDownload(){
     return this;
 }
 
+function  setEventForDelete(){
+    var dataDeletes =document.querySelectorAll('[data-delete-s3]');
+    for (var i = 0; i < dataDeletes.length; i++) {
+        dataDeletes[i].addEventListener('click', clickDataDeleteS3);
+    }
+    return this;
+}
+
+function clickDataDeleteS3(evt){
+    var prePrefix ="";
+    var actualString= $(evt.target).attr("data-delete-s3");
+    if(actualString.indexOf("/") >-1){
+        prePrefix=actualString.substring(0,actualString.lastIndexOf("/")+1);
+    }
+
+    var cb_success= function(){
+        var s;
+        clickDataPrefix(s,prePrefix);
+    };
+    var cb_fail =function(){
+        console.log("Download failed")
+    };
+    requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"DELETE","xml",cb_success,cb_fail,$(evt.target).attr("data-delete-s3"),false);
+}
+
+function getCurrentPath(){
+    var listItems = $("#prefix li");
+    var prefix="";
+    for(var i=2; i < listItems.length ; i++){
+        prefix+= $(listItems[i]).text()
+    }
+    return prefix;
+}
 function clickDataDownload(key){
     var cb_success=function(data){
         console.log("success",data);
@@ -194,17 +228,30 @@ function clickDataDownload(key){
     };
     return requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success,cb_fail,key,true);
 }
-function clickDataPrefix(evt){
+function clickDataPrefix(evt,path){
     var prefixPath="";
     var dataRootPath="";
-    prefixPath+= $(evt.target).attr("data-prefix");
-    dataRootPath+= '<li class="breadcrumb-item">'+ localStorage.getItem("bucketName")+'</li>';
-    dataRootPath+= '<li class="breadcrumb-item">'+ $(evt.target).attr("data-prefix")+'</li>';
-    $("#prefix").empty();
-    $("#prefix").append(common);
-    $("#prefix").append(dataRootPath);
-    var param= {"prefix":prefixPath, "delimiter":'/'};
-    requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success);
+    if(typeof path!= "undefined"){
+        prefixPath +=path;
+        dataRootPath += '<li class="breadcrumb-item">' + localStorage.getItem("bucketName") + '</li>';
+        dataRootPath += '<li class="breadcrumb-item">' + path + '</li>';
+        $("#prefix").empty();
+        $("#prefix").append(common);
+        $("#prefix").append(dataRootPath);
+        var param = {"prefix": prefixPath, "delimiter": '/'};
+        requestS3(localStorage.getItem("bucketName"), localStorage.getItem("accessKey"), localStorage.getItem("secretToken"), param, "GET", "xml", cb_success);
+        return this;
+    }else {
+        prefixPath += $(evt.target).attr("data-prefix");
+        dataRootPath += '<li class="breadcrumb-item">' + localStorage.getItem("bucketName") + '</li>';
+        dataRootPath += '<li class="breadcrumb-item">' + $(evt.target).attr("data-prefix") + '</li>';
+        $("#prefix").empty();
+        $("#prefix").append(common);
+        $("#prefix").append(dataRootPath);
+        var param = {"prefix": prefixPath, "delimiter": '/'};
+        requestS3(localStorage.getItem("bucketName"), localStorage.getItem("accessKey"), localStorage.getItem("secretToken"), param, "GET", "xml", cb_success);
+        return this;
+    }
 };
 
 function setEventForPrefix(){
@@ -262,6 +309,54 @@ function  deleteConnection(evt){
     });
 }
 
+function uploadFile(){
+    $(".fileUploadView").removeClass("hide");
+    $('#fileModal').modal('show');
+}
+
+function  fileClose(){
+    $(".fileUploadView").addClass("hide");
+    $('#fileModal').modal('hide');
+    var k;
+    clickDataPrefix(k,getCurrentPath());
+}
+
+function fileSave(){
+         var filePath= this.files[0];
+        $("#files").append($("#fileUploadProgressTemplate").tmpl());
+        $("#fileUploadError").addClass("hide");
+        var key = escape(getCurrentPath()+this.files[0].name);
+        var ABC;
+        var url=  requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),ABC,"PUT","xml","","",key,true, this.files[0].type);
+        $.ajax({
+            url: url,
+            type: 'PUT',
+            xhr: function() {
+                var xhr = $.ajaxSettings.xhr();
+                if (xhr.upload) {
+                    xhr.upload.addEventListener('progress', function(evt) {
+                        var percent = (evt.loaded / evt.total) * 100;
+                        $("#files").find(".progress-bar").width(percent + "%");
+                    }, false);
+                }
+                return xhr;
+            },
+            success: function(data) {
+                $("#files").children().last().remove();
+                $("#files").append($("#fileUploadItemTemplate").tmpl(data));
+                $("#uploadFile").closest("form").trigger("reset");
+            },
+            error: function() {
+                $("#fileUploadError").removeClass("hide").text("An error occured!");
+                $("#files").children().last().remove();
+                $("#uploadFile").closest("form").trigger("reset");
+            },
+            data:filePath,
+            cache: false,
+            contentType: false,
+            processData: false
+        });
+}
 document.addEventListener('DOMContentLoaded', function () {
     showModal();
     document.querySelector('#showExistingConnections').addEventListener('click', populateConnections);
@@ -270,4 +365,9 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('#submit').addEventListener('click', saveConnectionDetails);
     document.querySelector('#test').addEventListener('click', testConnection);
     document.querySelector('#changeBucket').addEventListener('click', changeBucket);
+    document.querySelector('#uploadFileClick').addEventListener('click', uploadFile);
+    document.querySelector('#fileClose').addEventListener('click', fileClose);
+    document.querySelector('#uploadFile').addEventListener('change', fileSave);
+
+
 });
