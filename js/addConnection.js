@@ -121,14 +121,25 @@ var cb_success= function(data){
         if (Array.isArray(contents)) {
             contents.forEach(function (content) {
                 if(content.Size == 0){
-                    rows = rows + '<tr><td><a href="#" data-preprefix="' + content.Key + '">' + content.Key + '</a></td> <td>&uarr;</td><td></td><td></td></tr>'
+                    if(content.Key.indexOf("hackFile45") >-1){
+                        var temp_String=content.Key.replace("hackFile45","")
+                        rows = rows + '<tr><td><a href="#" data-preprefix="' + temp_String + '">' + temp_String + '</a></td> <td>&uarr;</td><td></td><td></td></tr>'
+
+                    }else {
+                        rows = rows + '<tr><td><a href="#" data-preprefix="' + content.Key + '">' + content.Key + '</a></td> <td>&uarr;</td><td></td><td></td></tr>'
+                    }
                 }else {
                     rows = rows + '<tr><td><a href="'+clickDataDownload(content.Key)+'" data-content="' + content.Key + '">' + content.Key + '</a></td><td>' + bytesToSize(content.Size) + '</td><td>' + new Date(content.LastModified) + '</td><td><button class="btn btn-danger" data-delete-s3="'+content.Key+'">Delete</button></td></tr>'
                 }
             });
         } else {
              if(contents.Size == 0){
-                 rows = rows + '<tr><td><a href="#" data-preprefix="' + contents.Key + '">' + contents.Key + '</a></td> <td> &uarr;</td><td></td><td></td></tr>'
+                     if(contents.Key.indexOf("hackFile45") >-1) {
+                         var temp_String = contents.Key.replace("hackFile45", "");
+                         rows = rows + '<tr><td><a href="#" data-preprefix="' + temp_String + '">' + temp_String + '</a></td> <td> &uarr;</td><td></td><td></td></tr>'
+                    }else{
+                         rows = rows + '<tr><td><a href="#" data-preprefix="' + contents.Key + '">' + contents.Key + '</a></td> <td> &uarr;</td><td></td><td></td></tr>'
+                     }
              }else {
                  rows = rows + '<tr><td><a href="'+clickDataDownload(contents.Key)+'" data-content="' + contents.Key + '">' + contents.Key + '</a></td><td>' + bytesToSize(contents.Size) + '</td><td>' + new Date(contents.LastModified) + '</td><td><button class="btn btn-danger" data-delete-s3="'+contents.Key+'">Delete</button></td></tr>'
              }
@@ -357,6 +368,42 @@ function fileSave(){
             processData: false
         });
 }
+
+function showAddFolderView(){
+    $(".addFolderView").removeClass("hide");
+    $("#addFolderModal").modal("show");
+}
+
+function hideAddFolderView(){
+    $(".addFolderView").addClass("hide");
+    $("#addFolderModal").modal("hide");
+}
+
+function createNewFolder(){
+    var file=new File([""], "hackFile45");
+    var key = escape(getCurrentPath()+$("#newFolderName").val()+"/"+"hackFile45");
+    var ABC;
+    var url=  requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),ABC,"PUT","xml","","",key,true);
+    var cb_succes = function(){
+        clickDataPrefix(ABC,getCurrentPath());
+        hideAddFolderView();
+    };
+    var cb_fail = function(){
+        console.log("Fail");
+    };
+    $.ajax(  {
+        url: url,
+        type: "PUT",
+        success:cb_succes,
+        fail:cb_fail,
+        data:file,
+        cache: false,
+        contentType: false,
+        processData: false
+    })
+
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     showModal();
     document.querySelector('#showExistingConnections').addEventListener('click', populateConnections);
@@ -368,6 +415,9 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('#uploadFileClick').addEventListener('click', uploadFile);
     document.querySelector('#fileClose').addEventListener('click', fileClose);
     document.querySelector('#uploadFile').addEventListener('change', fileSave);
+    document.querySelector('#addFolder').addEventListener('click', showAddFolderView);
+    document.querySelector('#closeAddFolder').addEventListener('click', hideAddFolderView);
+    document.querySelector('#clickAddFolder').addEventListener('click', createNewFolder);
 
 
 });

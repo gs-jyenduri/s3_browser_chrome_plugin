@@ -18,10 +18,11 @@
         <div class="col-md-4 col-md-offset-5">
             <h3><b>Amazon S3</b></h3>
         </div>
-        <button type="button" style="margin-top:5px;margin-right:5px" class="btn btn-primary" id="changeBucket">Change
-            Bucket
+        <button type="button" style="margin-top:5px;margin-right:5px" class="btn btn-primary" id="changeBucket">Connections
         </button>
         <button type="button" style="margin-top:5px;margin-right:5px" class="btn btn-primary" id="uploadFileClick">Upload
+        </button>
+        <button type="button" style="margin-top:5px;margin-right:5px" class="btn btn-primary" id="addFolder">+ Folder
         </button>
     </div>
 </div>
@@ -75,7 +76,7 @@
                         <button type="submit" class="btn btn-primary" id="submit">Submit</button>
                         <button type="submit" class="btn btn-success" id="test">Test</button>
                     </div>
-                    Configure Amazon S3 Configuration
+                     Amazon S3 Configuration
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
@@ -129,6 +130,29 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal" id="fileClose">Close</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+</div>
+<div class="addFolderView hide">
+    <div class="modal fade" tabindex="-1" role="dialog" id="addFolderModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Enter the Folder Name</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-inline">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="newFolderName" placeholder="MDA-Data-Ingest/">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" id="closeAddFolder">Close</button>
+                    <button type="button" class="btn btn-primary" id="clickAddFolder">Create</button>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
