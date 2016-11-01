@@ -27,12 +27,12 @@
     </div>
 </div>
 <div class="addconnection">
-    <div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" data-backdrop="static">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                            aria-hidden="true">&times;</span></button>
+                    <!--<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span-->
+                            <!--aria-hidden="true">&times;</span></button>-->
                     <h4 class="modal-title">S3 Connection</h4>
                     <button type="button" class="btn btn-primary btn-sm pull-right moveleft"
                             id="showExistingConnections"> Connections
@@ -96,7 +96,7 @@
     </div>
 </div>
 <div class="fileUploadView hide">
-    <div class="modal fade" tabindex="-1" role="dialog" id="fileModal">
+    <div class="modal fade" tabindex="-1" role="dialog" id="fileModal" data-backdrop="static">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -136,7 +136,7 @@
     </div><!-- /.modal -->
 </div>
 <div class="addFolderView hide">
-    <div class="modal fade" tabindex="-1" role="dialog" id="addFolderModal">
+    <div class="modal fade" tabindex="-1" role="dialog" id="addFolderModal" data-backdrop="static">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -146,7 +146,7 @@
                 <div class="modal-body">
                     <form class="form-inline">
                         <div class="form-group">
-                            <input type="text" class="form-control" id="newFolderName" placeholder="MDA-Data-Ingest/">
+                            <input type="text" class="form-control" id="newFolderName" placeholder="Test">
                         </div>
                     </form>
                 </div>
