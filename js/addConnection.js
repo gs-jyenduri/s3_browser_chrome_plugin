@@ -237,7 +237,7 @@ function clickDataDownload(key){
     var cb_fail= function(){
         console.log("Fail");
     };
-    return requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success,cb_fail,key,true);
+    return requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"GET","xml",cb_success,cb_fail,escape(key),true);
 }
 function clickDataPrefix(evt,path){
     var prefixPath="";
