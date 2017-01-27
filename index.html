@@ -15,6 +15,8 @@
 <body>
 <div class="pageheader">
     <div class="row">
+        <div class="col-md-6" style="margin-left:10px" id="connectedConnection">
+        </div>
         <div class="col-md-4 col-md-offset-5">
             <h3><b>Amazon S3</b></h3>
         </div>
@@ -42,6 +44,9 @@
                     </button>
                 </div>
                 <div class="modal-body hide populateConnections">
+                    <div class="row hide" id="testPopulateCollections">
+
+                    </div>
                     <table class="table table-bordered" style="overflow: scroll;" id="connectionTables">
                     </table>
                 </div>
@@ -51,19 +56,31 @@
                             <label for="connectionName">Connection Name</label>
                             <input type="text" class="form-control" id="connectionName" required
                                    placeholder="Connection Name">
+                          <span id="connectionName" class="help-block">
+                            Any name that helps to Identify the connection.
+                          </span>
                         </div>
                         <div class="form-group">
                             <label for="bucketName">Bucket Name</label>
                             <input type="text" class="form-control" required id="bucketName" placeholder="Bucket Name">
-                            <!--<p class="help-block">Example block-level help text here.</p>-->
+                            <span id="bucketName" class="help-block">
+                              Amazon S3 bucket name
+                            </span>
                         </div>
                         <div class="form-group">
                             <label for="accessKey">Access Key</label>
                             <input type="text" class="form-control" required id="accessKey" placeholder="Access Key">
+                            <span id="accessKey" class="help-block">
+                              Amazon S3 access key
+                            </span>
+
                         </div>
                         <div class="form-group">
                             <label for="secretKey">Secret Token</label>
                             <input type="text" class="form-control" required id="secretKey" placeholder="Secret Token">
+                            <span id="secretKey" class="help-block">
+                              Amazon S3 secret token
+                            </span>
                         </div>
                         <div class="row hide" id="testresult">
 
@@ -124,7 +141,7 @@
                        <script id="fileUploadItemTemplate" type="text/x-jquery-tmpl">
                         <div class="list-group-item">
                             <button type="button" class="close">&times;</button>
-                             Loaded!
+                             Loaded ${key} successfully!
                         </div>
                     </script>
                 </div>

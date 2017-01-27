@@ -33,6 +33,30 @@ function  saveConnectionDetails(){
     var accessKey=$("#accessKey").val();
     var secretToken=$("#secretKey").val();
     var bucketName=$("#bucketName").val();
+    if(connectionName.length <=0){
+        $("#testresult").empty().removeClass("hide");
+        $("#testresult").html(" <div class='alert alert-warning moveleft moveright'> <strong> Connection Name cannot be empty !</strong></div>")
+        return;
+    }
+
+    if(!(accessKey.length>=16 && accessKey.length <=32)){
+        $("#testresult").empty().removeClass("hide");
+        $("#testresult").html(" <div class='alert alert-warning moveleft moveright'> <strong> Invalid AccessKey !</strong></div>")
+        return;
+    }
+    if(secretToken.length < 40){
+        $("#testresult").empty().removeClass("hide");
+        $("#testresult").html(" <div class='alert alert-warning moveleft moveright'> <strong> Invalid SecretKey !</strong></div>")
+        return;
+    }
+
+    if(bucketName.length <=0){
+        $("#testresult").empty().removeClass("hide");
+        $("#testresult").html(" <div class='alert alert-warning moveleft moveright'> <strong> Invalid Bucket Name !</strong></div>")
+        return;
+    }
+    $("#testresult").empty().removeClass("hide");
+
     var connectionDetail = {"connectionName": connectionName,"accessKey" : accessKey,"secretToken":secretToken,"bucketName":bucketName};
     var key = bucketName;
     var jsonfile = {};
@@ -52,9 +76,15 @@ function populateConnections(){
     var columns="";
     chrome.storage.sync.get(null, function(items) {
         $("#connectionTables").empty();
+        $("#testPopulateCollections").addClass("hide");
+        if(Object.keys(items).length <=0){
+            $("#testPopulateCollections").removeClass("hide");
+            $("#testPopulateCollections").html("<p class='alert alert-info'><strong> No connections yet!</strong></p>");
+            return;
+        }
         allKeys = Object.keys(items);
         allKeys.forEach(function(key){
-            columns=columns+"<tr> + <td data-id="+key+"> "+key+" </td><td><button class='btn btn-success btn-sm' data-connect="+key+" type='button'> Connect</button> </td><td><button class='btn btn-danger btn-sm'  id='deleteRow' data-delete="+key+" type='button'> Delete</button> </td> </tr>";
+            columns=columns+"<tr> + <td>"+ items[key].connectionName+"</td><td data-id="+key+"> "+key+" </td><td><button class='btn btn-success btn-sm' data-connect="+key+" type='button'> Connect</button> </td><td><button class='btn btn-danger btn-sm'  id='deleteRow' data-delete="+key+" type='button'> Delete</button> </td> </tr>";
         });
         $("#connectionTables").append(columns);
         var deleteElements =document.querySelectorAll('[data-delete]');
@@ -75,14 +105,31 @@ function  testConnection(){
     var accessKey = $("#accessKey").val();
     var secretKey =$("#secretKey").val();
     var bucketName=$("#bucketName").val();
+    if(!(accessKey.length>=16 && accessKey.length <=32)){
+        $("#testresult").empty().removeClass("hide");
+        $("#testresult").html(" <div class='alert alert-warning moveleft moveright'> <strong> Invalid AccessKey !</strong></div>")
+        return;
+    }
+    if(secretKey.length < 40){
+        $("#testresult").empty().removeClass("hide");
+        $("#testresult").html(" <div class='alert alert-warning moveleft moveright'> <strong> Invalid SecretKey !</strong></div>")
+        return;
+    }
+
+    if(bucketName.length <=0){
+        $("#testresult").empty().removeClass("hide");
+        $("#testresult").html(" <div class='alert alert-warning moveleft moveright'> <strong> Invalid Bucket Name !</strong></div>")
+        return;
+    }
     $("#testresult").empty().removeClass("hide");
     var cb_success= function(data){
-        console.log(xml2json(data,""));
         //s.ListBucketResult.Contents
+        $("#testresult").empty().removeClass("hide");
         $("#testresult").html(" <div class='alert alert-success moveleft moveright'> <strong>Authentication Successful !</strong></div>")
     };
     var cb_fail=function(data){
-        $("#testresult").html(" <div class='alert alert-warning moveleft moveright'> <strong> Failure</strong></div>")
+        $("#testresult").empty().removeClass("hide");
+        $("#testresult").html(" <div class='alert alert-danger moveleft moveright'> <strong> Authentication Failed !</strong></div>")
     };
     var param= {"prefix":'', "delimiter":'/'};
     requestS3(bucketName,accessKey,secretKey,param,"GET","xml",cb_success,cb_fail)
@@ -99,12 +146,13 @@ function requestS3(bucketName, accessKey,secretKey,param,type,dataType,cb_succes
         dataType: dataType,
         type: type,
         success:cb_succes,
-        fail:cb_fail
+        error:cb_fail
     })
 }
 
 function showModal(){
     $('#myModal').modal('show');
+    populateConnections();
 }
 /**
  * Handles table creation
@@ -180,6 +228,7 @@ function connectionView($evt){
     $("#prefix").empty();
     $("#prefix").append(common);
     chrome.storage.sync.get(s3BucketName, function (obj) {
+        $("#connectedConnection").html("<b>Connected : </b>"+obj[self.name1].connectionName);
         $("#prefix").append('<li class="breadcrumb-item">'+ obj[self.name1].bucketName+'</li>');
         localStorage.setItem("accessKey",obj[self.name1].accessKey);
         localStorage.setItem("secretToken",obj[self.name1].secretToken);
@@ -206,6 +255,10 @@ function  setEventForDelete(){
 }
 
 function clickDataDeleteS3(evt){
+  var r = confirm("Do you want to delete "+$(evt.target).attr("data-delete-s3"));
+  if (r != true) {
+      return;
+  } else {
     var prePrefix ="";
     var actualString= escape($(evt.target).attr("data-delete-s3"));
     if(actualString.indexOf("/") >-1){
@@ -220,6 +273,7 @@ function clickDataDeleteS3(evt){
         console.log("Download failed")
     };
     requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),param,"DELETE","xml",cb_success,cb_fail,escape($(evt.target).attr("data-delete-s3")),false);
+  }
 }
 
 function getCurrentPath(){
@@ -327,6 +381,7 @@ function uploadFile(){
 
 function  fileClose(){
     $(".fileUploadView").addClass("hide");
+    $("#files").empty();
     $('#fileModal').modal('hide');
     var k;
     clickDataPrefix(k,getCurrentPath());
@@ -353,8 +408,9 @@ function fileSave(){
                 return xhr;
             },
             success: function(data) {
-                $("#files").children().last().remove();
-                $("#files").append($("#fileUploadItemTemplate").tmpl(data));
+                var tempName= [ {"key":key} ];
+                $("#files").empty();
+                $("#files").append($("#fileUploadItemTemplate").tmpl(tempName));
                 $("#uploadFile").closest("form").trigger("reset");
             },
             error: function() {
@@ -395,7 +451,7 @@ function createNewFolder(){
         url: url,
         type: "PUT",
         success:cb_succes,
-        fail:cb_fail,
+        error:cb_fail,
         data:file,
         cache: false,
         contentType: false,
@@ -418,6 +474,4 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('#addFolder').addEventListener('click', showAddFolderView);
     document.querySelector('#closeAddFolder').addEventListener('click', hideAddFolderView);
     document.querySelector('#clickAddFolder').addEventListener('click', createNewFolder);
-
-
 });
