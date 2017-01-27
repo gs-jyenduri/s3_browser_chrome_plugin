@@ -169,8 +169,8 @@ var cb_success= function(data){
         if (Array.isArray(contents)) {
             contents.forEach(function (content) {
                 if(content.Size == 0){
-                    if(content.Key.indexOf("hackFile45") >-1){
-                        var temp_String=content.Key.replace("hackFile45","")
+                    if(content.Key.indexOf("tempFile") >-1){
+                        var temp_String=content.Key.replace("tempFile","")
                         rows = rows + '<tr><td><a href="#" data-preprefix="' + temp_String + '">' + temp_String + '</a></td> <td>&uarr;</td><td></td><td></td></tr>'
 
                     }else {
@@ -182,8 +182,8 @@ var cb_success= function(data){
             });
         } else {
              if(contents.Size == 0){
-                     if(contents.Key.indexOf("hackFile45") >-1) {
-                         var temp_String = contents.Key.replace("hackFile45", "");
+                     if(contents.Key.indexOf("tempFile") >-1) {
+                         var temp_String = contents.Key.replace("tempFile", "");
                          rows = rows + '<tr><td><a href="#" data-preprefix="' + temp_String + '">' + temp_String + '</a></td> <td> &uarr;</td><td></td><td></td></tr>'
                     }else{
                          rows = rows + '<tr><td><a href="#" data-preprefix="' + contents.Key + '">' + contents.Key + '</a></td> <td> &uarr;</td><td></td><td></td></tr>'
@@ -255,7 +255,9 @@ function  setEventForDelete(){
 }
 
 function clickDataDeleteS3(evt){
-  var r = confirm("Do you want to delete "+$(evt.target).attr("data-delete-s3"));
+  var tempString = $(evt.target).attr("data-delete-s3");
+  var tempNum = tempString.lastIndexOf('/');
+  var r = confirm("Do you want to delete "+tempString.substring(tempNum+1));
   if (r != true) {
       return;
   } else {
@@ -408,7 +410,7 @@ function fileSave(){
                 return xhr;
             },
             success: function(data) {
-                var tempName= [ {"key":key} ];
+                var tempName= [ {"key":filePath.name} ];
                 $("#files").empty();
                 $("#files").append($("#fileUploadItemTemplate").tmpl(tempName));
                 $("#uploadFile").closest("form").trigger("reset");
@@ -436,8 +438,8 @@ function hideAddFolderView(){
 }
 
 function createNewFolder(){
-    var file=new File([""], "hackFile45");
-    var key = escape(getCurrentPath()+$("#newFolderName").val()+"/"+"hackFile45");
+    var file=new File([""], "tempFile");
+    var key = escape(getCurrentPath()+$("#newFolderName").val()+"/"+"tempFile");
     var ABC;
     var url=  requestS3(localStorage.getItem("bucketName"),localStorage.getItem("accessKey"),localStorage.getItem("secretToken"),ABC,"PUT","xml","","",key,true);
     var cb_succes = function(){
